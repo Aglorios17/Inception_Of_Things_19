@@ -1,0 +1,3 @@
+# inception_of_things_p3_app
+
+This repository contains an app defined inside kubernetes object .yaml files. This app will be deployed inside 42 school project inception of things (IoT) kubernetes cluster. [Argo CD](https://github.com/artainmo/WebDevelopment/blob/main/other/kubernetes/README.md#argo-cd) will be used to automatically keep the running app inside the kubernetes cluster up-to-date with changes made to this repository, this helps automate moving code from a development environment to a production environment which is called a [CI/CD pipeline](https://github.com/artainmo/WebDevelopment/tree/main/other/DevOps#CICD-pipelines).
