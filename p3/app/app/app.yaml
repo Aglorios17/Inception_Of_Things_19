@@ -33,7 +33,6 @@ metadata:
     app: will
 spec:
   selector:
-    matchLabels:
       app: will
   ports:
     - protocol: TCP
