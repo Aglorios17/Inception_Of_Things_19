@@ -1,25 +1,25 @@
 #Starts the whole app
 all:
-	./setup.sh
+	./scripts/setup.sh
 
 #Reloads the whole app
 re:
-	./fclean.sh
-	./setup.sh
+	./scripts/fclean.sh
+	./scripts/setup.sh
 
 #Remove the whole app
 clean:
-	./fclean.sh
+	./scripts/fclean.sh
 
 #Create the argo-cd app (if kubernetes cluster with argo-cd controller already exists)
 launch:
-	./launch.sh
+	./scripts/launch.sh
 
 #Reload the argo-cd app
 re_launch:
-	./clean.sh
-	./launch.sh
+	./scripts/clean.sh
+	./scripts/launch.sh
 
 #Remove the argo-cd app
 clean_launch:
-	./clean.sh
+	./scripts/clean.sh
