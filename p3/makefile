@@ -23,3 +23,7 @@ re_launch:
 #Remove the argo-cd app
 clean_launch:
 	./scripts/clean.sh
+
+#Verify created app
+verify:
+	./scripts/verify.sh

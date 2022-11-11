@@ -21,7 +21,7 @@ then
 		echo "We will delete the cluster for you."
 		k3d cluster delete p3
 		echo "Now we will restart the cluster for you."
-		./setup.sh
+		./scripts/setup.sh
 	fi
 	exit 1
 fi
@@ -34,4 +34,5 @@ kubectl get namespace
 
 echo "\033[0;32m======== Argo CD setup - Allow the creation of a CI/CD pipeline around kubernetes application ========\033[0m"
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-./launch.sh 'called_from_setup'
+./scripts/launch.sh 'called_from_setup'
+exit 0
