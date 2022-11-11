@@ -13,7 +13,7 @@ fi
 if [ -z "$1" ]; then
   echo "\033[0;32m======== Argo CD setup - Allow the creation of a CI/CD pipeline around kubernetes application ========\033[0m"
 fi
-echo "WAITING FOR ARGO-CD PODS TO RUN... (This can take up to 3minutes)"
+echo "WAITING FOR ARGO-CD PODS TO RUN... (This can take up to 6minutes)"
 if [ "$1" ]; then
   sleep 10 #This is necessary as we cannot check the argo-cd pods instantly after applying them
 fi
@@ -67,5 +67,5 @@ sleep 5
 echo "\033[0;36mView created app after sync and configuration\033[0m"
 argocd app get will --grpc-web
 
-./scripts/verify.sh $1
+./scripts/verify.sh 'called_from_launch' $1
 exit 0

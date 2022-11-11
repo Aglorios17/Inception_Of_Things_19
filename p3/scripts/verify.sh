@@ -1,5 +1,10 @@
-if [ "$1" ]; then
+if [ "$2" ]; then #If scripts started from setup.sh
   osascript -e 'display notification "Argo-CD configuration is finished" with title "App Ready"'; say "App Ready"
+fi
+if [ -z "$1" ]; then #If scripts was not started by another script
+  #We refresh the argo-cd connection because it tends to slow down. After testing it indeed makes everything instantly faster and prevents bugs.
+  kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
+  kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
 fi
 
 echo "\033[0;32m======== Connect to Argo CD user-interface (UI) ========\033[0m"
@@ -22,7 +27,7 @@ read -p 'Do you want to push git repo changes to verify if running app synchroni
 if [ $input != 'y' ]; then
 	exit 0
 fi
-echo "WAIT until will-app pods are ready before starting..."
+echo "WAIT until will-app pods are ready before starting... (This can take up to 4minutes)"
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 kubectl wait pods -n dev --all --for condition=Ready --timeout=600s
 if [ $? -eq 1 ] #protect from pods in dev who are not ready yet before making the verifications
