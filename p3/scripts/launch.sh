@@ -7,7 +7,7 @@ then
 	if [ $input = 'y' ]; then
 		./scripts/setup.sh
 	fi
-	exit 1
+	exit 0
 fi
 
 if [ -z "$1" ]; then
@@ -61,9 +61,9 @@ sleep 5
 echo "> set auto-prune policy"
 argocd app set will --auto-prune --allow-empty --grpc-web #If resources are removed in git repo those resources will also be removed inside our running will-app, even if that means the app becomes empty.
 sleep 5
-echo "> set self-heal policy"
-argocd app set will --self-heal --grpc-web #If between git repo changes the running app changes (because you remove certain of its resources per accident or for other reasons...) the running app will be reverted to the lastest git repo's version.
-sleep 5
+#echo "> set self-heal policy" #I remove this policy because it is of no utility inside this project while I suspect it to (as a bug) revert new syncs to older versions sometimes.
+#argocd app set will --self-heal --grpc-web #If between git repo changes the running app changes (because you remove certain of its resources per accident or for other reasons...) the running app will be reverted to the lastest git repo's version.
+#sleep 5
 echo "\033[0;36mView created app after sync and configuration\033[0m"
 argocd app get will --grpc-web
 

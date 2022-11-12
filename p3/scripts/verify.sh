@@ -15,7 +15,7 @@ if [ $input = 'y' ]; then
 	echo " ARGO CD PASSWORD: $ARGOCD_PASSWORD (we PASTED it on CLIPBOARD if you are on mac)"
 	echo $ARGOCD_PASSWORD | pbcopy
 	for i in {20..0}; do
-        printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+      printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
   		sleep 1
 	done
 	printf '\n'
@@ -38,6 +38,10 @@ then
 fi
 echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for will-app pods creation."
 kubectl config set-context --current --namespace=dev
+kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/will-app-service' | cut -d ' ' -f1) 2>/dev/null
+#From my understanding we should be able to access the app running in kubernetes from outside by using a service of type LoadBalancer, subsequently calling `curl http://<external-ip>:<port>` (find 'external-ip:port' with `get services -n dev will-app-service`).
+#However this did not work for me. To resolve the problem I forwarded the service's access point on localhost:8888. This means by calling localhost:8888 I am redirected to the service which finally redirects me to the pod containing app.
+kubectl port-forward svc/will-app-service -n dev 8888:8888 &>/dev/null &
 imageVersion=$(kubectl describe deployments will-app-deployment | grep 'Image')
 imageVersion=$(echo $imageVersion | cut -c 26-26)
 if [ $imageVersion -eq 1 ]; then
@@ -48,7 +52,9 @@ fi
 echo "\033[0;36mOur current app uses the version $imageVersion of following image\033[0m"
 echo "> kubectl describe deployments will-app-deployment | grep 'Image'"
 kubectl describe deployments will-app-deployment | grep 'Image'
-echo "\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
+echo "> curl http://localhost:8888"
+curl http://localhost:8888
+echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
 git clone 'https://github.com/Aglorios17/Inception_Of_Things_19.git' tmp &>/dev/null
 cd tmp/p3
 git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
@@ -94,7 +100,7 @@ git commit -m "App change image version for synchronization TEST" &>/dev/null
 git push &>/dev/null
 cd - 1>/dev/null
 rm -rf tmp
-echo "\033[0;36mWAIT until synchronization occurs (this can take up to 6minutes)\033[0m"
+echo "\033[0;36mWAIT until automated synchronization occurs (this can take up to 6minutes)\033[0m\nAvoid manual synchronization as it can lead to bugs during this demonstration."
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$newImageVersion" --timeout=600s
 if [ $? -eq 1 ]
@@ -104,8 +110,27 @@ then
 	exit 1
 fi
 echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
-osascript -e 'display notification "Synchronization results are ready" with title "Verification finished"'; say "Verification finished"
 echo "\033[0;36mAfter automated synchronization the running app should mirror the git repo and use image version $newImageVersion\033[0m"
 echo "> kubectl describe deployments will-app-deployment | grep 'Image'"
 kubectl describe deployments will-app-deployment | grep 'Image'
-exit 0
+#We make sure to use an open port else bugs sometimes occur if predefined port is already in use.
+openPort=8889
+while [[ $(lsof -i :$openPort) ]]; do
+  ((openPort++))
+done
+echo "> curl http://localhost:$openPort"
+sleep 5 #This prevents the following command from failing for some reason
+#The last port-forward is linked to prior app. After synchronization we need to make a new port-forward. We use a new port because trying to keep port 8888 creates bugs even when killing prior port-forward.
+kubectl port-forward svc/will-app-service -n dev $openPort:8888 &>/dev/null &
+sleep 5 #This prevents the following command from failing for some reason
+curl http://localhost:$openPort 2>/dev/null
+while [ $? != 0 ]; do #Sometimes bugs occur but relaunching resolves the problem
+  echo "Call failed retrying..."
+  if ! [[ $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/will-app-service -n dev $openPort') ]]; then #If port-forward does not exist, recreate.
+    sleep 5
+    kubectl port-forward svc/will-app-service -n dev $openPort:8888 &>/dev/null &
+  fi
+  sleep 5
+  curl http://localhost:$openPort 2>/dev/null
+done
+osascript -e 'display notification "Synchronization results are ready" with title "Verification finished"'; say "Verification finished"

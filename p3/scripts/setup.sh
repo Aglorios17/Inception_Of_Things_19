@@ -22,6 +22,7 @@ then
 		k3d cluster delete p3
 		echo "Now we will restart the cluster for you."
 		./scripts/setup.sh
+		exit 0
 	fi
 	exit 1
 fi
