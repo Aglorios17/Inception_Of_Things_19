@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+MASTER_NODE_NAME = 'NahaddacC'
+MASTER_NODE_IP = '192.168.42.110'
+
+MEM = 1024
+CPU = 1
+BOX = "generic/centos8"
+BOX_AUTO_UPDATE = false
+
+Vagrant.configure("2") do |config|
+
+	config.vm.box = BOX
+	config.vm.box_check_update = BOX_AUTO_UPDATE
+	config.vbguest.installer_options = { allow_kernel_upgrade: true }
+	config.vm.provision "shell", inline: $DISABLE_FIREWALL_SCRIPT 
+
+	config.vm.provider "virtualbox" do |v|
+		v.memory = MEM
+		v.cpus = CPU
+	end
+
+	config.vm.define MASTER_NODE_NAME do |master|
+		master.vm.hostname = MASTER_NODE_NAME
+		master.vm.network :private_network, ip: MASTER_NODE_IP
+		master.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+		master.vm.provision "shell", privileged: true, path: "scripts/master_node_setup.sh", args: [MASTER_NODE_IP]
+		master.vm.provider "virtualbox" do |v|
+			v.name = MASTER_NODE_NAME
+		end
+	end
+end
