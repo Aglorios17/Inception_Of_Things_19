@@ -82,6 +82,10 @@ ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output
 git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
 sleep 2
 cd tmp
+if [ "$(uname)" = "Linux" ]; then #View on linux file not found bug
+   pwd
+   ls -la
+fi
 if [ "$(uname)" = "Darwin" ]; then
 	git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
 	if [ $? -eq 128 ]
@@ -94,8 +98,13 @@ fi
 echo "\033[1;33mBefore giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
 cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
 cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
-sed -i '' "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
-sed -i '' "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
+if [ "$(uname)" = "Darwin" ]; then
+   sed -i '' "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
+   sed -i '' "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
+else
+   sed --i "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
+   sed --i "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
+fi
 echo "\033[1;33mAfter giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
 cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
 cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
