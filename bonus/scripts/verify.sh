@@ -175,9 +175,11 @@ echo "> kubectl describe deployments will-app-deployment | grep 'Image'"
 kubectl describe deployments will-app-deployment | grep 'Image'
 #We make sure to use an open port else bugs sometimes occur if predefined port is already in use.
 openPort=8889
-while [ "$(lsof -i :$openPort)" ]; do
-  ((openPort++))
-done
+if [ "$(uname)" = "Darwin" ]; then
+  while [[ $(lsof -i :$openPort) ]]; do
+    ((openPort++))
+  done
+fi
 echo "> curl http://localhost:$openPort"
 sleep 5 #This prevents the following command from failing for some reason
 #The last port-forward is linked to prior app. After synchronization we need to make a new port-forward. We use a new port because trying to keep port 8888 creates bugs even when killing prior port-forward.
