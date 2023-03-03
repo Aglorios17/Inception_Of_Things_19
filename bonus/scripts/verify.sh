@@ -1,5 +1,3 @@
-#!/bin/bash
-#The upper line forces the execution of this script with 'bash' instead of default 'shell'. This allows the use of bash features such as '[[ ]]'.
 if [ "$2" ]; then #If scripts started from setup.sh
   if [ "$(uname)" = "Darwin" ]; then
     osascript -e 'display notification "Argo-CD configuration is finished" with title "App Ready"'; say "App Ready"
@@ -177,7 +175,7 @@ echo "> kubectl describe deployments will-app-deployment | grep 'Image'"
 kubectl describe deployments will-app-deployment | grep 'Image'
 #We make sure to use an open port else bugs sometimes occur if predefined port is already in use.
 openPort=8889
-while [[ $(lsof -i :$openPort) ]]; do
+while [ "$(lsof -i :$openPort)" ]; do
   ((openPort++))
 done
 echo "> curl http://localhost:$openPort"
