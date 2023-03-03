@@ -7,6 +7,8 @@ Use on macOS. This has been developed on Monterey version 12.6.<br>
 Run Docker Desktop.<br>
 Have 'brew' ready.<br>
 
+Or it can also work on Linux. See more below.
+
 ### Start
 ```
 make
@@ -15,3 +17,14 @@ Restart the whole app with `make re`.<br>
 Remove the app and clean workspace with `make clean`.<br>
 
 For more advanced commands look at the makefile.
+
+### Linux
+To make the app work on Linux here are some of the dependencies that you will have to install manually.
+```
+sudo apt install make
+sudo apt install xse
+sudo apt install gh
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+```
