@@ -39,6 +39,8 @@ if [ $input != 'y' ]; then
 fi
 if [ "$(uname)" = "Linux" ]; then
   gh auth login
+  rm -f ../.git/index.lock #removing other git process to avoid ambiguity
+  rm -f ../.git/HEAD.lock #removing other git process to avoid ambiguity
 fi
 echo "WAIT until will-app pods are ready before starting... (This can take up to 4minutes)"
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
