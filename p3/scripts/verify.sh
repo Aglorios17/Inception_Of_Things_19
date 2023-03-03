@@ -78,7 +78,6 @@ curl http://localhost:8888
 echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
 git clone 'https://github.com/Aglorios17/Inception_Of_Things_19.git' tmp &>/dev/null
 cd tmp/p3
-pwd
 git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
 if [ $? -eq 128 ]
 then
@@ -134,7 +133,6 @@ if [ "$(uname)" = "Linux" ]; then
   git config --global user.email "$input@github.com"
   git config --global user.name "$input"
 fi
-ls
 git add app/app/deployment.yaml &>/dev/null
 git commit -m "App change image version for synchronization TEST" &>/dev/null
 git push &>/dev/null
