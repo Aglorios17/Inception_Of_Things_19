@@ -8,6 +8,8 @@ Use on macOS. This has been developed on Monterey version 12.6.<br>
 Run Docker Desktop.<br>
 Have 'brew' ready.<br>
 
+Or it can also work on Linux. See more below.
+
 ### Start
 ```
 make
@@ -16,3 +18,11 @@ Restart the whole app with `make re`.<br>
 Remove the app and clean workspace with `make clean`.<br>
 
 For more advanced commands look at the makefile.
+
+### Linux
+To make the app work on Linux you will have to install the dependencies from 'p3'. And additionally the one below.
+```
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
