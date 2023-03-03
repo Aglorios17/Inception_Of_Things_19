@@ -31,7 +31,11 @@ then
 	k3d cluster delete p3
 	exit 1
 fi
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for Argo-CD pods creation."
+if [ "$(uname)" == "Darwin" ]; then
+	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for Argo-CD pods creation."
+else
+	echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for Argo-CD pods creation."
+fi
 
 kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it

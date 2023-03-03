@@ -48,7 +48,11 @@ then
   echo "An error occurred. The creation of will-app pods timed out."
 	exit 1
 fi
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for will-app pods creation."
+if [ "$(uname)" == "Darwin" ]; then
+  echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for will-app pods creation."
+else
+  echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for will-app pods creation."
+fi
 kubectl config set-context --current --namespace=dev
 kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/will-app-service' | cut -d ' ' -f1) 2>/dev/null
 #From my understanding we should be able to access the app running in kubernetes from outside by using a service of type LoadBalancer, subsequently calling `curl http://<external-ip>:<port>` (find 'external-ip:port' with `get services -n dev will-app-service`).
@@ -100,7 +104,11 @@ if [ $imageVersion != $realImageVersion ]; then
     cd -; rm -rf tmp
   	exit 1
   fi
-  echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
+  if [ "$(uname)" == "Darwin" ]; then
+    echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
+  else
+    echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for sync."
+  fi
   newImageVersion=$imageVersion
   imageVersion=$realImageVersion
 fi
@@ -136,7 +144,11 @@ then
   echo "An error occurred. Argo-CD takes abnormally long to synchronize."
 	exit 1
 fi
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
+if [ "$(uname)" == "Darwin" ]; then
+  echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
+else
+  echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for sync."
+fi
 echo "\033[0;36mAfter automated synchronization the running app should mirror the git repo and use image version $newImageVersion\033[0m"
 echo "> kubectl describe deployments will-app-deployment | grep 'Image'"
 kubectl describe deployments will-app-deployment | grep 'Image'
