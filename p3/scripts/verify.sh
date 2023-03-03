@@ -20,14 +20,16 @@ if [ $input = 'y' ]; then
   else
     echo $ARGOCD_PASSWORD | xsel --clipboard --input
   fi
-	for i in {20..0}; do
-      printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
-  		sleep 1
-	done
-	printf '\n'
   if [ "$(uname)" = "Darwin" ]; then
+  	for i in {20..0}; do
+        printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+    		sleep 1
+  	done
+  	printf '\n'
 	  open 'https://localhost:8080'
   else
+    printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: 20s'
+    sleep 20
     xdg-open 'https://localhost:8080' &>/dev/null
   fi
 fi
@@ -39,8 +41,6 @@ if [ $input != 'y' ]; then
 fi
 if [ "$(uname)" = "Linux" ]; then
   gh auth login
-  rm -f ../.git/index.lock #removing other git process to avoid ambiguity
-  rm -f ../.git/HEAD.lock #removing other git process to avoid ambiguity
 fi
 echo "WAIT until will-app pods are ready before starting... (This can take up to 4minutes)"
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
@@ -78,7 +78,9 @@ curl http://localhost:8888
 echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
 git clone 'https://github.com/Aglorios17/Inception_Of_Things_19.git' tmp &>/dev/null
 cd tmp/p3
-git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
+if [ "$(uname)" = "Darwin" ]; then
+  git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
+fi
 if [ $? -eq 128 ]
 then
   echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
