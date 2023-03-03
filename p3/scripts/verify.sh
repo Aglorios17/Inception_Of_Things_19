@@ -81,16 +81,15 @@ sleep 2
 cd tmp/p3
 if [ "$(uname)" = "Darwin" ]; then
   git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
-fi
-if [ $? -eq 128 ]
-then
-  echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
-  cd -; rm -rf tmp;
-  exit 1
+  if [ $? -eq 128 ]
+  then
+    echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
+    cd -; rm -rf tmp;
+    exit 1
+  fi
 fi
 realImageVersion=$(cat app/app/deployment.yaml | grep 'image')
 realImageVersion=$(echo $realImageVersion | cut -c 26-26)
-if [ "$(uname)" = "Darwin" ]; then #test
 if [ $imageVersion != $realImageVersion ]; then
   if [ "$(uname)" = "Darwin" ]; then
     osascript -e 'display notification "Verification not possible" with title "App Error"'; say "App Error"
@@ -121,7 +120,6 @@ if [ $imageVersion != $realImageVersion ]; then
   newImageVersion=$imageVersion
   imageVersion=$realImageVersion
 fi
-fi
 echo "\033[1;33mBefore changing deployment.yaml\033[0m"
 echo "> cat app/app/deployment.yaml | grep 'image'"
 cat app/app/deployment.yaml | grep 'image'
@@ -139,17 +137,17 @@ if [ "$(uname)" = "Linux" ]; then
   git config --global user.email "$input@github.com"
   git config --global user.name "$input"
 fi
-if [ "$(uname)" = "Darwin" ]; then #Verify on Linux the .git/index.lock bug
+if [ "$(uname)" = "Linux" ]; then #Verify on Linux the .git/index.lock bug
    pwd
    ls
    ls ../.git
    ls ../../../.git
 fi
-git add app/app/deployment.yaml &>/dev/null
+git add app/app/deployment.yaml
 sleep 1
-git commit -m "App change image version for synchronization TEST" &>/dev/null
+git commit -m "App change image version for synchronization TEST"
 sleep 1
-git push &>/dev/null
+git push
 sleep 2
 cd - 1>/dev/null
 rm -rf tmp

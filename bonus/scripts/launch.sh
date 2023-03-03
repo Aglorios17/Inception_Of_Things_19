@@ -1,7 +1,9 @@
 kubectl cluster-info &>/dev/null
 if [ $? -eq 1 ] #protect this script from running without an active kubernetes cluster
 then
-	osascript -e 'display notification "Argo-CD launched without a kubernetes cluster" with title "App Error"'; say "App Error"
+	if [ "$(uname)" = "Darwin" ]; then
+		osascript -e 'display notification "Argo-CD launched without a kubernetes cluster" with title "App Error"'; say "App Error"
+	fi
   echo "An error occurred. No kuberneted cluster is running for Argo-CD to be launched."
   read -p 'Do you want us to first create the cluster? (y/n): ' input
 	if [ $input = 'y' ]; then
@@ -21,13 +23,19 @@ SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/h
 kubectl wait pods -n argocd --all --for condition=Ready --timeout=600s
 if [ $? -eq 1 ]
 then
-	osascript -e 'display notification "Argo-CD pods creation timeout" with title "App Error"'; say "App Error"
+	if [ "$(uname)" = "Darwin" ]; then
+		osascript -e 'display notification "Argo-CD pods creation timeout" with title "App Error"'; say "App Error"
+	fi
   echo "An error occurred. The creation of argocd's pods timed out."
 	echo "We will delete the k3d cluster..."
 	k3d cluster delete p3
 	exit 1
 fi
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for Argo-CD pods creation."
+if [ "$(uname)" = "Darwin" ]; then
+	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for Argo-CD pods creation."
+else
+	echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for Argo-CD pods creation."
+fi
 
 kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
@@ -72,13 +80,16 @@ argocd app get will --grpc-web
 echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
 ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output=jsonpath="{.spec.clusterIP}"):443"
 git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
+sleep 2
 cd tmp
-git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
-if [ $? -eq 128 ]
-then
-  echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
-  cd -; rm -rf tmp;
-  exit 1
+if [ "$(uname)" = "Darwin" ]; then
+	git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
+	if [ $? -eq 128 ]
+	then
+	  echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
+	  cd -; rm -rf tmp;
+	  exit 1
+	fi
 fi
 echo "\033[1;33mBefore giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
 cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
@@ -88,9 +99,12 @@ sed -i '' "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.y
 echo "\033[1;33mAfter giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
 cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
 cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
-git add .gitlab-ci.yml &>/dev/null
-git commit -m "setting latest ARGOCD_PASSWORD and ARGOCD_ADDRESS" &>/dev/null
-git push &>/dev/null
+git add .gitlab-ci.yml
+sleep 1
+git commit -m "setting latest ARGOCD_PASSWORD and ARGOCD_ADDRESS"
+sleep 1
+git push
+sleep 2
 cd - 1>/dev/null
 rm -rf tmp
 echo "\033[0;36mCreate gitlab-runner\033[0m"
@@ -106,16 +120,23 @@ echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since wa
 echo "\033[0;36mView created GitLab Runner\033[0m"
 #helm status gitlab-runner
 kubectl describe pods gitlab-runner --namespace=gitlab
-osascript -e 'display notification "GitLab configuration is finished" with title "App Ready"'; say "App Ready"
+if [ "$(uname)" = "Darwin" ]; then
+	osascript -e 'display notification "GitLab configuration is finished" with title "App Ready"'; say "App Ready"
+fi
 read -p 'Do you want to view the gitlab-runner from gitlab.com? (y/n): ' input
 if [ $input = 'y' ]; then
 	echo " When arrived on page expand 'Runners' and see 'Specific runners', 'Available specific runners'."
-	for i in {10..0}; do
-      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
-  		sleep 1
-	done
-	printf '\n'
-	open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+	if [ "$(uname)" = "Darwin" ]; then
+		for i in {10..0}; do
+	      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+	  		sleep 1
+		done
+		printf '\n'
+		open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+	else
+		printf ' Go here https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+		sleep 20
+	fi
 fi
 
 
