@@ -1,5 +1,7 @@
 if [ "$2" ]; then #If scripts started from setup.sh
-  osascript -e 'display notification "Argo-CD configuration is finished" with title "App Ready"'; say "App Ready"
+  if [ "$(uname)" == "Darwin" ]; then
+    osascript -e 'display notification "Argo-CD configuration is finished" with title "App Ready"'; say "App Ready"
+  fi
 fi
 if [ -z "$1" ]; then #If scripts was not started by another script
   #We refresh the argo-cd connection because it tends to slow down. After testing it indeed makes everything instantly faster and prevents bugs.
@@ -12,14 +14,22 @@ read -p 'Do you want to be redirected to the argo-cd UI? (y/n): ' input
 if [ $input = 'y' ]; then
   ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
 	echo " ARGO CD USERNAME: admin"
-	echo " ARGO CD PASSWORD: $ARGOCD_PASSWORD (we PASTED it on CLIPBOARD if you are on mac)"
-	echo $ARGOCD_PASSWORD | pbcopy
+	echo " ARGO CD PASSWORD: $ARGOCD_PASSWORD (we PASTED it on CLIPBOARD)"
+  if [ "$(uname)" == "Darwin" ]; then
+	   echo $ARGOCD_PASSWORD | pbcopy
+  else
+    echo $ARGOCD_PASSWORD | xsel --clipboard --input
+  fi
 	for i in {20..0}; do
       printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
   		sleep 1
 	done
 	printf '\n'
-	open 'https://localhost:8080'
+  if [ "$(uname)" == "Darwin" ]; then
+	  open 'https://localhost:8080'
+  else
+    xdg-open 'https://localhost:8080' &>/dev/null
+  fi
 fi
 
 echo "\033[0;32m======== Verify automated synchronization ========\033[0m"
@@ -32,7 +42,9 @@ SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/h
 kubectl wait pods -n dev --all --for condition=Ready --timeout=600s
 if [ $? -eq 1 ] #protect from pods in dev who are not ready yet before making the verifications
 then
-	osascript -e 'display notification "will-app pods creation timeout" with title "App Error"'; say "App Error"
+  if [ "$(uname)" == "Darwin" ]; then
+	   osascript -e 'display notification "will-app pods creation timeout" with title "App Error"'; say "App Error"
+  fi
   echo "An error occurred. The creation of will-app pods timed out."
 	exit 1
 fi
@@ -67,7 +79,9 @@ fi
 realImageVersion=$(cat app/app/deployment.yaml | grep 'image')
 realImageVersion=$(echo $realImageVersion | cut -c 26-26)
 if [ $imageVersion != $realImageVersion ]; then
-  osascript -e 'display notification "Verification not possible" with title "App Error"'; say "App Error"
+  if [ "$(uname)" == "Darwin" ]; then
+    osascript -e 'display notification "Verification not possible" with title "App Error"'; say "App Error"
+  fi
   echo "We cannot perform the verification as the running app is not synchronized with git repo yet."
   read -p 'Do you want to wait until the running app synchronizes? (y/n): ' input
   if [ $input != 'y' ]; then
@@ -79,7 +93,9 @@ if [ $imageVersion != $realImageVersion ]; then
   kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$realImageVersion" --timeout=600s
   if [ $? -eq 1 ]
   then
-  	osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
+    if [ "$(uname)" == "Darwin" ]; then
+  	   osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
+    fi
     echo "An error occurred. Argo-CD takes abnormally long to synchronize."
     cd -; rm -rf tmp
   	exit 1
@@ -91,10 +107,19 @@ fi
 echo "\033[1;33mBefore changing deployment.yaml\033[0m"
 echo "> cat app/app/deployment.yaml | grep 'image'"
 cat app/app/deployment.yaml | grep 'image'
-sed -i '' "s/wil42\/playground\:v$imageVersion/wil42\/playground\:v$newImageVersion/g" app/app/deployment.yaml
+if [ "$(uname)" == "Darwin" ]; then
+  sed -i '' "s/wil42\/playground\:v$imageVersion/wil42\/playground\:v$newImageVersion/g" app/app/deployment.yaml
+else
+  sed --i "s/wil42\/playground\:v$imageVersion/wil42\/playground\:v$newImageVersion/g" app/app/deployment.yaml
+fi
 echo "\033[1;33mAfter changing deployment.yaml\033[0m"
 echo "> cat app/app/deployment.yaml | grep 'image'"
 cat app/app/deployment.yaml | grep 'image'
+if [ "$(uname)" == "Linux" ]; then
+  read -p 'Github login: ' input
+  git config --global user.email "$input@github.com"
+  git config --global user.name "$input"
+fi
 git add app/app/deployment.yaml &>/dev/null
 git commit -m "App change image version for synchronization TEST" &>/dev/null
 git push &>/dev/null
@@ -105,7 +130,9 @@ SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/h
 kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$newImageVersion" --timeout=600s
 if [ $? -eq 1 ]
 then
-	osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
+  if [ "$(uname)" == "Darwin" ]; then
+	   osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
+  fi
   echo "An error occurred. Argo-CD takes abnormally long to synchronize."
 	exit 1
 fi
@@ -133,4 +160,6 @@ while [ $? != 0 ]; do #Sometimes bugs occur but relaunching resolves the problem
   sleep 5
   curl http://localhost:$openPort 2>/dev/null
 done
-osascript -e 'display notification "Synchronization results are ready" with title "Verification finished"'; say "Verification finished"
+if [ "$(uname)" == "Darwin" ]; then
+  osascript -e 'display notification "Synchronization results are ready" with title "Verification finished"'; say "Verification finished"
+fi
