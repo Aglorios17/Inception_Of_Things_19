@@ -28,9 +28,9 @@ if [ $input = 'y' ]; then
   	printf '\n'
 	  open 'https://localhost:8080'
   else
-    printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: 20s'
+    printf ' Remember those credentials. Login here https://localhost:8080 for the Argo CD UI\n'
     sleep 20
-    xdg-open 'https://localhost:8080' &>/dev/null
+    #xdg-open 'https://localhost:8080' &>/dev/null
   fi
 fi
 
@@ -77,6 +77,7 @@ echo "> curl http://localhost:8888"
 curl http://localhost:8888
 echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
 git clone 'https://github.com/Aglorios17/Inception_Of_Things_19.git' tmp &>/dev/null
+sleep 2
 cd tmp/p3
 if [ "$(uname)" = "Darwin" ]; then
   git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
@@ -89,6 +90,7 @@ then
 fi
 realImageVersion=$(cat app/app/deployment.yaml | grep 'image')
 realImageVersion=$(echo $realImageVersion | cut -c 26-26)
+if [ "$(uname)" = "Darwin" ]; then #test
 if [ $imageVersion != $realImageVersion ]; then
   if [ "$(uname)" = "Darwin" ]; then
     osascript -e 'display notification "Verification not possible" with title "App Error"'; say "App Error"
@@ -119,6 +121,7 @@ if [ $imageVersion != $realImageVersion ]; then
   newImageVersion=$imageVersion
   imageVersion=$realImageVersion
 fi
+fi
 echo "\033[1;33mBefore changing deployment.yaml\033[0m"
 echo "> cat app/app/deployment.yaml | grep 'image'"
 cat app/app/deployment.yaml | grep 'image'
@@ -131,13 +134,23 @@ echo "\033[1;33mAfter changing deployment.yaml\033[0m"
 echo "> cat app/app/deployment.yaml | grep 'image'"
 cat app/app/deployment.yaml | grep 'image'
 if [ "$(uname)" = "Linux" ]; then
+  sleep 2
   read -p 'Github login: ' input
   git config --global user.email "$input@github.com"
   git config --global user.name "$input"
 fi
+if [ "$(uname)" = "Darwin" ]; then #Verify on Linux the .git/index.lock bug
+   pwd
+   ls
+   ls ../.git
+   ls ../../../.git
+fi
 git add app/app/deployment.yaml &>/dev/null
+sleep 1
 git commit -m "App change image version for synchronization TEST" &>/dev/null
+sleep 1
 git push &>/dev/null
+sleep 2
 cd - 1>/dev/null
 rm -rf tmp
 echo "\033[0;36mWAIT until automated synchronization occurs (this can take up to 6minutes)\033[0m\nAvoid manual synchronization as it can lead to bugs during this demonstration."
