@@ -1,5 +1,5 @@
 echo "\033[0;32m======== Install prerequisites ========\033[0m"
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
 	#do not forget to run docker desktop on mac
 	#install docker if docker does not exist or is outdated
 	brew outdated --cask docker || brew install --cask docker
@@ -15,7 +15,7 @@ echo "\033[0;32m======== K3D setup - Create kubernetes cluster on local machine 
 k3d cluster create p3
 if [ $? -eq 1 ]
 then
-	if [ "$(uname)" == "Darwin" ]; then
+	if [ "$(uname)" = "Darwin" ]; then
 		osascript -e 'display notification "Cluster creation failed" with title "App Error"'; say "App Error"
 	fi
   echo "An error occured when creating the cluster."

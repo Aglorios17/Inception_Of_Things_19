@@ -1,7 +1,7 @@
 kubectl cluster-info &>/dev/null
 if [ $? -eq 1 ] #protect this script from running without an active kubernetes cluster
 then
-	if [ "$(uname)" == "Darwin" ]; then
+	if [ "$(uname)" = "Darwin" ]; then
 		osascript -e 'display notification "Argo-CD launched without a kubernetes cluster" with title "App Error"'; say "App Error"
 	fi
   echo "An error occurred. No kuberneted cluster is running for Argo-CD to be launched."
@@ -23,7 +23,7 @@ SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/h
 kubectl wait pods -n argocd --all --for condition=Ready --timeout=600s
 if [ $? -eq 1 ]
 then
-	if [ "$(uname)" == "Darwin" ]; then
+	if [ "$(uname)" = "Darwin" ]; then
 		osascript -e 'display notification "Argo-CD pods creation timeout" with title "App Error"'; say "App Error"
 	fi
   echo "An error occurred. The creation of argocd's pods timed out."
@@ -31,7 +31,7 @@ then
 	k3d cluster delete p3
 	exit 1
 fi
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
 	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for Argo-CD pods creation."
 else
 	echo "$(($SECONDS / 60)) minutes and $(expr $SECONDS % 60) seconds elapsed since waiting for Argo-CD pods creation."
