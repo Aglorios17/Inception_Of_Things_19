@@ -150,7 +150,7 @@ if [ $input = 'y' ]; then
   	printf '\n'
   	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
   else
-    printf ' Go here https://gitlab.com/artainmo/inception-of-things/-/pipelines'
+    printf ' Go here https://gitlab.com/artainmo/inception-of-things/-/pipelines\n'
     sleep 20
   fi
 fi

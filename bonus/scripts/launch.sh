@@ -134,7 +134,7 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 read -p 'Do you want to view the gitlab-runner from gitlab.com? (y/n): ' input
 if [ $input = 'y' ]; then
-	echo " When arrived on page expand 'Runners' and see 'Specific runners', 'Available specific runners'."
+	echo " When arrived on page expand 'Runners' and see 'Project runners', 'Assigned project runners'."
 	if [ "$(uname)" = "Darwin" ]; then
 		for i in {10..0}; do
 	      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
@@ -143,7 +143,7 @@ if [ $input = 'y' ]; then
 		printf '\n'
 		open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
 	else
-		printf ' Go here https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+		printf ' If logged on gitlab go here https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd\n'
 		sleep 20
 	fi
 fi
