@@ -22,7 +22,7 @@ For more advanced commands look at the makefile.
 To make the app work on Linux here are some of the dependencies that you will have to install manually.
 ```
 sudo apt install make
-sudo apt install xse
+sudo apt install xsel
 sudo apt install gh
 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
