@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
 	  master.vm.synced_folder "./confs", "/vagrant", type: "virtualbox"
 	  master.vm.hostname = "agloriosS"
 	  master.vm.provider "virtualbox" do |vb|
-		  vb.memory = "1024"
+		  vb.memory = "2048"
 		  vb.cpus = "1"
 		  vb.name = "agloriosS"
 	  end
