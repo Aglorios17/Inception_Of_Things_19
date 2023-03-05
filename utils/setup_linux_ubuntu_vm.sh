@@ -56,9 +56,9 @@ argocd version
 #sudo apt-get install -y postfix
 #echo "Make sure you have correctly set up your DNS, and change https://gitlab.example.com to the URL at which you want to access your GitLab instance. Installation will automatically configure and start GitLab at that URL."
 #curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo os=ubuntu dist=jammy bash
-#sudo EXTERNAL_URL="http://gitlab.local" apt-get install gitlab-ee
+#sudo GITLAB_ROOT_PASSWORD="user4242" EXTERNAL_URL="http://192.168.55.113" apt install gitlab-ee
 #echo "Username : root\n"
-#sudo cat /etc/gitlab/initial_root_password
+#echo "Password: $(cat /home/user/../../etc/gitlab/initial_root_password)"
 #echo "sudo cat /etc/gitlab/initial_root_password | /!\ change for user4242 in gui for our script"
 
 
