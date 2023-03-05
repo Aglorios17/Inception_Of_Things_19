@@ -120,7 +120,7 @@ echo "\033[0;36mCreate gitlab-runner\033[0m"
 kubectl config set-context --current --namespace=gitlab
 helm repo add gitlab https://charts.gitlab.io
 helm install --namespace 'gitlab' gitlab-runner \
-			--set gitlabUrl='http://gitlab.local',runnerRegistrationToken='GR1348941ZsiMGEXKMKDvmWx4ysQF',rbac.create='true' \
+			--set gitlabUrl='http://gitlab.local/',runnerRegistrationToken='cHTxsAcKiQy5FGovyzc7',rbac.create='true' \
 			gitlab/gitlab-runner
 echo "\033[0;36mWAIT until the gitlab-runner pod is ready... (This can take up to 3minutes)\033[0m"
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
