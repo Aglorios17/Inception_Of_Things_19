@@ -62,8 +62,3 @@ echo "\n>> ADD HOST IN /ETC/HOSTS\n"
 echo "192.168.56.110 app1.com" | sudo tee -a /etc/hosts
 echo "192.168.56.110 app2.com" | sudo tee -a /etc/hosts
 echo "127.0.0.1 gitlab.local" | sudo tee -a /etc/hosts
-
-
-
-
-
