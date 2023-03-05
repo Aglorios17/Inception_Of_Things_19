@@ -2,6 +2,10 @@ echo "\n\n===============================\n"
 echo "=== INSTALL DIFFERENT TOOLS ===\n"
 echo "===============================\n\n"
 
+echo "\n>> UPDATE / UPGRADE\n"
+sudo apt update
+sudo apt upgrade -y
+
 echo "\n>> INSTALL MAKE\n"
 sudo apt install make -y
 
