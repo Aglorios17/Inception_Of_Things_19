@@ -74,7 +74,11 @@ kubectl describe deployments will-app-deployment | grep 'Image'
 echo "> curl http://localhost:8888"
 curl http://localhost:8888
 echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
-git clone 'http://gitlab.local/root/inception-of-things.git' tmp &>/dev/null
+if [ "$(uname)" = "Darwin" ]; then
+  git clone 'https://gitlab.com/artainmo/inception-of-things.git' tmp &>/dev/null
+else
+  git clone 'http://gitlab.local/root/inception-of-things.git' tmp &>/dev/null
+fi
 sleep 2
 cd tmp
 if [ "$(uname)" = "Darwin" ]; then
@@ -144,11 +148,11 @@ read -p 'Do you want to see the CI/CD pipeline executing on gitlab? (y/n): ' inp
 if [ $input = 'y' ]; then
   if [ "$(uname)" = "Darwin" ]; then
     for i in {5..0}; do
-        printf ' We will redirect you to http://gitlab.local/root/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+        printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
     		sleep 1
   	done
   	printf '\n'
-  	open 'http://gitlab.local/root/inception-of-things/-/pipelines'
+  	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
   else
     printf ' Go here http://gitlab.local/root/inception-of-things/-/pipelines\n'
     sleep 20

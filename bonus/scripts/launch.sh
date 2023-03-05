@@ -42,7 +42,11 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run 
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
 argocd login localhost:8080 --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web
 kubectl config set-context --current --namespace=argocd
-argocd app create will --repo 'http://gitlab.local/root/inception-of-things.git' --path 'app' --dest-namespace 'dev' --dest-server 'https://kubernetes.default.svc' --grpc-web
+if [ "$(uname)" = "Darwin" ]; then
+	argocd app create will --repo 'https://gitlab.com/artainmo/inception-of-things.git' --path 'app' --dest-namespace 'dev' --dest-server 'https://kubernetes.default.svc' --grpc-web
+else
+	argocd app create will --repo 'http://gitlab.local/root/inception-of-things.git' --path 'app' --dest-namespace 'dev' --dest-server 'https://kubernetes.default.svc' --grpc-web
+fi
 if [ $? -eq 20 ] #protect this script from running while will app already exists
 then
   echo "An error occurred when creating argo-cd app 'will'."
@@ -79,7 +83,11 @@ argocd app get will --grpc-web
 
 echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
 ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output=jsonpath="{.spec.clusterIP}"):443"
-git clone http://gitlab.local/root/inception-of-things.git tmp &>/dev/null
+if [ "$(uname)" = "Darwin" ]; then
+	git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
+else
+	git clone http://gitlab.local/root/inception-of-things.git tmp &>/dev/null
+fi
 sleep 2
 cd tmp
 if [ "$(uname)" = "Linux" ]; then #View on linux file not found bug
@@ -119,9 +127,15 @@ rm -rf tmp
 echo "\033[0;36mCreate gitlab-runner\033[0m"
 kubectl config set-context --current --namespace=gitlab
 helm repo add gitlab https://charts.gitlab.io
-helm install --namespace 'gitlab' gitlab-runner \
-			--set gitlabUrl='http://gitlab.local/',runnerRegistrationToken='cHTxsAcKiQy5FGovyzc7',rbac.create='true' \
-			gitlab/gitlab-runner
+if [ "$(uname)" = "Darwin" ]; then
+	helm install --namespace 'gitlab' gitlab-runner \
+				--set gitlabUrl='https://gitlab.com/',runnerRegistrationToken='GR1348941ZsiMGEXKMKDvmWx4ysQF',rbac.create='true' \
+				gitlab/gitlab-runner
+else
+	helm install --namespace 'gitlab' gitlab-runner \
+				--set gitlabUrl='http://gitlab.local/',runnerRegistrationToken='cHTxsAcKiQy5FGovyzc7',rbac.create='true' \
+				gitlab/gitlab-runner
+fi
 echo "\033[0;36mWAIT until the gitlab-runner pod is ready... (This can take up to 3minutes)\033[0m"
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
@@ -137,11 +151,11 @@ if [ $input = 'y' ]; then
 	echo " When arrived on page expand 'Runners' and see 'Project runners', 'Assigned project runners'."
 	if [ "$(uname)" = "Darwin" ]; then
 		for i in {10..0}; do
-	      printf ' We will redirect you to http://gitlab.local/root/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+	      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
 	  		sleep 1
 		done
 		printf '\n'
-		open 'http://gitlab.local/root/inception-of-things/-/settings/ci_cd'
+		open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
 	else
 		printf ' If logged on gitlab go here http://gitlab.local/root/inception-of-things/-/settings/ci_cd\n'
 		sleep 20
