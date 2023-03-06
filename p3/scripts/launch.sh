@@ -38,9 +38,9 @@ else
 fi
 
 kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
+kubectl port-forward svc/argocd-server -n argocd 9393:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
-argocd login localhost:8080 --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web
+argocd login localhost:9393 --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web
 kubectl config set-context --current --namespace=argocd
 argocd app create will --repo 'https://github.com/Aglorios17/Inception_Of_Things_19.git' --path 'p3/app/app' --dest-namespace 'dev' --dest-server 'https://kubernetes.default.svc' --grpc-web
 if [ $? -eq 20 ] #protect this script from running while will app already exists

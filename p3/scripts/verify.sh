@@ -6,7 +6,7 @@ fi
 if [ -z "$1" ]; then #If scripts was not started by another script
   #We refresh the argo-cd connection because it tends to slow down. After testing it indeed makes everything instantly faster and prevents bugs.
   kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
-  kubectl port-forward svc/argocd-server -n argocd 8080:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
+  kubectl port-forward svc/argocd-server -n argocd 9393:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
 fi
 
 echo "\033[0;32m======== Connect to Argo CD user-interface (UI) ========\033[0m"
@@ -22,15 +22,15 @@ if [ $input = 'y' ]; then
   fi
   if [ "$(uname)" = "Darwin" ]; then
   	for i in {20..0}; do
-        printf ' Remember those credentials. We will redirect you to https://localhost:8080 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+        printf ' Remember those credentials. We will redirect you to https://localhost:9393 for the Argo CD UI in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
     		sleep 1
   	done
   	printf '\n'
-	  open 'https://localhost:8080'
+	  open 'https://localhost:9393'
   else
-    printf ' Remember those credentials. Login here https://localhost:8080 for the Argo CD UI\n'
+    printf ' Remember those credentials. Login here https://localhost:9393 for the Argo CD UI\n'
     sleep 20
-    #xdg-open 'https://localhost:8080' &>/dev/null
+    #xdg-open 'https://localhost:9393' &>/dev/null
   fi
 fi
 
