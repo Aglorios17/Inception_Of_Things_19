@@ -14,7 +14,7 @@ read -p 'Do you want to be redirected to the argo-cd UI? (y/n): ' input
 if [ $input = 'y' ]; then
   ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
 	echo " ARGO CD USERNAME: admin"
-	echo " ARGO CD PASSWORD: $ARGOCD_PASSWORD (we PASTED it on CLIPBOARD if you are on mac)"
+	echo " ARGO CD PASSWORD: $ARGOCD_PASSWORD (we PASTED it on CLIPBOARD)"
   if [ "$(uname)" = "Darwin" ]; then
 	   echo $ARGOCD_PASSWORD | pbcopy
   else

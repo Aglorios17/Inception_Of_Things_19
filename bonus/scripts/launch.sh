@@ -40,6 +40,7 @@ fi
 kill $(ps | grep -v 'grep' | grep 'kubectl port-forward svc/argocd-server' | cut -d ' ' -f1) 2>/dev/null #We delete port-forward process if it already exists
 kubectl port-forward svc/argocd-server -n argocd 9393:443 &>/dev/null & #We run it in background and hide the output because benign error messages and other undesirable messages appear from it
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
+ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output=jsonpath="{.spec.clusterIP}"):443"
 argocd login localhost:9393 --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web
 kubectl config set-context --current --namespace=argocd
 if [ "$(uname)" = "Darwin" ]; then
@@ -83,8 +84,11 @@ fi
 echo "\033[0;36mView created app after sync and configuration\033[0m"
 argocd app get will --grpc-web
 
-echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
-ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output=jsonpath="{.spec.clusterIP}"):443"
+if [ "$(uname)" = "Darwin" ]; then
+	echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
+else
+	echo "\033[0;32m======== BONUS: Install local gitlab in Kubernetes gitlab namespace ========\033[0m"
+fi
 if [ "$(uname)" = "Darwin" ]; then
 	if [ "$(uname)" = "Darwin" ]; then
 		git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
@@ -164,6 +168,23 @@ if [ "$(uname)" = "Darwin" ]; then
 			sleep 20
 		fi
 	fi
+else
+	#linux create local gitlab repo
+	kubectl config set-context --current --namespace=gitlab
+	helm repo add gitlab https://charts.gitlab.io
+	helm repo update
+	helm upgrade --install gitlab gitlab/gitlab \
+	  --timeout 600s \
+	  --set global.hosts.domain=gitlab.local \
+	  --set global.hosts.externalIP=10.10.10.10 \
+	  --set certmanager-issuer.email=me@example.com \
+	  --set postgresql.image.tag=13.6.0
+	LOCAL_GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
+	echo " LOCAL GITLAB USERNAME: admin"
+	echo " LOCAL GITLAB PASSWORD: $LOCAL_GITLAB_PASS (we PASTED it on CLIPBOARD)"
+	echo $LOCAL_GITLAB_PASS | xsel --clipboard --input
+	printf ' Remember those credentials. Login here gitlab.local for the local gitlab\n'
+	sleep 20
 fi
 
 ./scripts/verify.sh 'called_from_launch' $1
