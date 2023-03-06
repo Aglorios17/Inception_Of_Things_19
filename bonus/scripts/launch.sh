@@ -95,30 +95,23 @@ if [ "$(uname)" = "Darwin" ]; then
 else
 	echo "\033[0;32m======== BONUS: Install local gitlab in Kubernetes gitlab namespace ========\033[0m"
 	kubectl config set-context --current --namespace=gitlab
-	helm repo add gitlab https://charts.gitlab.io
-	helm repo update
-	helm upgrade --install gitlab gitlab/gitlab \
-	  --timeout 600s \
-	  --set global.hosts.domain=gitlab.local \
-	  --set global.hosts.externalIP=10.10.10.10 \
-	  --set certmanager-issuer.email=root@gitlab.local \
-	  --set postgresql.image.tag=13.6.0
-	echo "\033[0;36mWAIT until the gitlab pod is ready...\033[0m"
+	kubectl create -f gitlab/redis-svc.yml
+	kubectl create -f gitlab/redis-deployment.yml
+	kubectl create -f gitlab/postgresql-svc.yml
+	kubectl create -f gitlab/postgresql-deployment.yml
+	echo "\033[0;36mWAIT until the gitlab requirement pods are ready...\033[0m"
 	SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 	kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
 	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
-	echo "\033[0;36mView created GitLab pod\033[0m"
-	helm status gitlab
-	kubectl describe pods gitlab --namespace=gitlab
-	read -p 'Do you want to view the local gitlab UI? (y/n): ' input
-	if [ $input = 'y' ]; then
-		LOCAL_GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
-		echo " LOCAL GITLAB USERNAME: admin"
-		echo " LOCAL GITLAB PASSWORD: $LOCAL_GITLAB_PASS (we PASTED it on CLIPBOARD)"
-		echo $LOCAL_GITLAB_PASS | xsel --clipboard --input
-		printf ' Remember those credentials. Login here gitlab.local for the local gitlab\n'
-		sleep 20
-	fi
+	kubectl create -f gitlab/gitlab-svc.yml
+	kubectl create -f gitlab/gitlab-svc-nodeport.yml
+	kubectl create -f gitlab/gitlab-deployment.yml
+	echo "\033[0;36mWAIT until the gitlab pods are ready...\033[0m"
+	SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
+	kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
+	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
+	echo "View the nodeport on which gitlab was deployed to be able to access it."
+	kubectl describe svc gitlab-nodeport --namespace=gitlab
 fi
 
 if [ -z "$1" ]; then
