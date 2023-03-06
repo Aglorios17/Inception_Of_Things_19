@@ -162,7 +162,16 @@ if [ $? -eq 1 ]; then
 	   osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
   fi
   echo "An error occurred. Argo-CD takes abnormally long to synchronize."
-	exit 1
+  read -p 'Do you want to verify again? (y/n): ' input
+  if [ $input = 'y' ]; then
+    echo "We will start off by synchronizing before running the tests."
+    argocd app sync will --grpc-web
+    echo "Now we will relaunch the verifications."
+    ./scripts/verify.sh
+		exit 0
+  else
+	   exit 1
+  fi
 fi
 if [ "$(uname)" = "Darwin" ]; then
   echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for sync."
