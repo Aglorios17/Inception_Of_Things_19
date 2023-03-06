@@ -101,15 +101,15 @@ else
 	  --timeout 600s \
 	  --set global.hosts.domain=gitlab.local \
 	  --set global.hosts.externalIP=10.10.10.10 \
-	  --set certmanager-issuer.email=me@example.com \
+	  --set certmanager-issuer.email=root@gitlab.local \
 	  --set postgresql.image.tag=13.6.0
 	echo "\033[0;36mWAIT until the gitlab pod is ready...\033[0m"
 	SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 	kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
 	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
 	echo "\033[0;36mView created GitLab pod\033[0m"
-	helm status gitlab-runner
-	kubectl describe pods gitlab-runner --namespace=gitlab
+	helm status gitlab
+	kubectl describe pods gitlab --namespace=gitlab
 	read -p 'Do you want to view the local gitlab UI? (y/n): ' input
 	if [ $input = 'y' ]; then
 		LOCAL_GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
