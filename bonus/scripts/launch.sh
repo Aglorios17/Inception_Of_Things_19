@@ -67,10 +67,12 @@ sleep 5 #Those pauses between argocd calls help prevent connection bugs
 echo "\033[0;36mSync the app and configure\033[0m"
 argocd app sync will --grpc-web
 sleep 5
-#In this 'bonus' exercise we will sync through GitLab CI/CD calling 'argocd app sync will'. Thus we remove automated sync.
-#echo "> set automated sync policy"
-#argocd app set will --sync-policy automated --grpc-web #Once git repo is changed with new push, our running will-app will mirror that.
-#sleep 5
+#In this 'bonus' exercise we will sync through GitLab CI/CD calling 'argocd app sync will'. Thus we remove automated sync. (ONLY ON MAC) (ON LINUX WE WILL DO LOCAL GITLAB BONUS)
+if [ "$(uname)" = "Linux" ]; then
+	echo "> set automated sync policy"
+	argocd app set will --sync-policy automated --grpc-web #Once git repo is changed with new push, our running will-app will mirror that.
+	sleep 5
+fi
 #auo-prune cannot be set without automated sync
 #echo "> set auto-prune policy"
 #argocd app set will --auto-prune --allow-empty --grpc-web #If resources are removed in git repo those resources will also be removed inside our running will-app, even if that means the app becomes empty.
@@ -84,46 +86,48 @@ argocd app get will --grpc-web
 echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
 ARGOCD_ADDRESS="$(kubectl get services --namespace=argocd argocd-server --output=jsonpath="{.spec.clusterIP}"):443"
 if [ "$(uname)" = "Darwin" ]; then
-	git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
-else
-	git clone http://gitlab.local/root/inception-of-things.git tmp &>/dev/null
-fi
-sleep 2
-cd tmp
-if [ "$(uname)" = "Linux" ]; then #View on linux file not found bug
-   pwd
-   ls -la
-fi
-if [ "$(uname)" = "Darwin" ]; then
-	git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
-	if [ $? -eq 128 ]
-	then
-	  echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
-	  cd -; rm -rf tmp;
-	  exit 1
+	if [ "$(uname)" = "Darwin" ]; then
+		git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
+	else
+		git clone http://gitlab.local/root/inception-of-things.git tmp &>/dev/null
 	fi
+	sleep 2
+	cd tmp
+	if [ "$(uname)" = "Linux" ]; then #View on linux file not found bug
+	   pwd
+	   ls -la
+	fi
+	if [ "$(uname)" = "Darwin" ]; then
+		git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
+		if [ $? -eq 128 ]
+		then
+		  echo "You don't have the permissions to make changes in repo. You won't be able to verify synchronization."
+		  cd -; rm -rf tmp;
+		  exit 1
+		fi
+	fi
+	echo "\033[1;33mBefore giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
+	cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
+	cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
+	if [ "$(uname)" = "Darwin" ]; then
+	   sed -i '' "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
+	   sed -i '' "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
+	else
+	   sed --i "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
+	   sed --i "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
+	fi
+	echo "\033[1;33mAfter giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
+	cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
+	cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
+	git add .gitlab-ci.yml
+	sleep 1
+	git commit -m "setting latest ARGOCD_PASSWORD and ARGOCD_ADDRESS"
+	sleep 1
+	git push
+	sleep 2
+	cd - 1>/dev/null
+	rm -rf tmp
 fi
-echo "\033[1;33mBefore giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
-cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
-cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
-if [ "$(uname)" = "Darwin" ]; then
-   sed -i '' "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
-   sed -i '' "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
-else
-   sed --i "s/ARGOCD_PASSWORD:.*/ARGOCD_PASSWORD: '$ARGOCD_PASSWORD'/g" .gitlab-ci.yml
-   sed --i "s/ARGOCD_ADDRESS:.*/ARGOCD_ADDRESS: '$ARGOCD_ADDRESS'/g" .gitlab-ci.yml
-fi
-echo "\033[1;33mAfter giving GitLab ARGOCD_PASSWORD and ARGOCD_ADDRESS\033[0m"
-cat .gitlab-ci.yml | grep 'ARGOCD_PASSWORD:'
-cat .gitlab-ci.yml | grep 'ARGOCD_ADDRESS:'
-git add .gitlab-ci.yml
-sleep 1
-git commit -m "setting latest ARGOCD_PASSWORD and ARGOCD_ADDRESS"
-sleep 1
-git push
-sleep 2
-cd - 1>/dev/null
-rm -rf tmp
 echo "\033[0;36mCreate gitlab-runner\033[0m"
 kubectl config set-context --current --namespace=gitlab
 helm repo add gitlab https://charts.gitlab.io

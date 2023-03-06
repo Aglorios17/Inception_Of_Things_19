@@ -142,20 +142,22 @@ git push
 sleep 2
 cd - 1>/dev/null
 rm -rf tmp
-echo "\033[0;36mHere you can see in 'Sync Policy' that the app doesn't automatically synchronizes using Argo-CD. For this bonus we will pass through gitlab CI/CD pipeline instead.\033[0m"
-argocd app get will --grpc-web | grep -e 'Sync Policy\|Name:'
-read -p 'Do you want to see the CI/CD pipeline executing on gitlab? (y/n): ' input
-if [ $input = 'y' ]; then
-  if [ "$(uname)" = "Darwin" ]; then
-    for i in {5..0}; do
-        printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
-    		sleep 1
-  	done
-  	printf '\n'
-  	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
-  else
-    printf ' Go here http://gitlab.local/root/inception-of-things/-/pipelines\n'
-    sleep 20
+if [ "$(uname)" = "Darwin" ]; then
+  echo "\033[0;36mHere you can see in 'Sync Policy' that the app doesn't automatically synchronizes using Argo-CD. For this bonus we will pass through gitlab CI/CD pipeline instead.\033[0m"
+  argocd app get will --grpc-web | grep -e 'Sync Policy\|Name:'
+  read -p 'Do you want to see the CI/CD pipeline executing on gitlab? (y/n): ' input
+  if [ $input = 'y' ]; then
+    if [ "$(uname)" = "Darwin" ]; then
+      for i in {5..0}; do
+          printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+      		sleep 1
+    	done
+    	printf '\n'
+    	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
+    else
+      printf ' Go here http://gitlab.local/root/inception-of-things/-/pipelines\n'
+      sleep 20
+    fi
   fi
 fi
 echo "\033[0;36mWAIT until automated synchronization occurs (this can take up to 3minutes)\033[0m\nAvoid manual synchronization as it can lead to bugs during this demonstration."
