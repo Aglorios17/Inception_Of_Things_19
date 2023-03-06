@@ -86,10 +86,6 @@ argocd app get will --grpc-web
 
 if [ "$(uname)" = "Darwin" ]; then
 	echo "\033[0;32m======== BONUS: Install GitLab runner in kubernetes cluster with helm ========\033[0m"
-else
-	echo "\033[0;32m======== BONUS: Install local gitlab in Kubernetes gitlab namespace ========\033[0m"
-fi
-if [ "$(uname)" = "Darwin" ]; then
 	if [ "$(uname)" = "Darwin" ]; then
 		git clone https://gitlab.com/artainmo/inception-of-things.git tmp &>/dev/null
 	else
@@ -169,7 +165,7 @@ if [ "$(uname)" = "Darwin" ]; then
 		fi
 	fi
 else
-	#linux create local gitlab repo
+	echo "\033[0;32m======== BONUS: Install local gitlab in Kubernetes gitlab namespace ========\033[0m"
 	kubectl config set-context --current --namespace=gitlab
 	helm repo add gitlab https://charts.gitlab.io
 	helm repo update
@@ -179,12 +175,22 @@ else
 	  --set global.hosts.externalIP=10.10.10.10 \
 	  --set certmanager-issuer.email=me@example.com \
 	  --set postgresql.image.tag=13.6.0
-	LOCAL_GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
-	echo " LOCAL GITLAB USERNAME: admin"
-	echo " LOCAL GITLAB PASSWORD: $LOCAL_GITLAB_PASS (we PASTED it on CLIPBOARD)"
-	echo $LOCAL_GITLAB_PASS | xsel --clipboard --input
-	printf ' Remember those credentials. Login here gitlab.local for the local gitlab\n'
-	sleep 20
+	echo "\033[0;36mWAIT until the gitlab pod is ready...\033[0m"
+	SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
+	kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
+	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
+	echo "\033[0;36mView created GitLab pod\033[0m"
+	helm status gitlab-runner
+	kubectl describe pods gitlab-runner --namespace=gitlab
+	read -p 'Do you want to view the local gitlab UI? (y/n): ' input
+	if [ $input = 'y' ]; then
+		LOCAL_GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
+		echo " LOCAL GITLAB USERNAME: admin"
+		echo " LOCAL GITLAB PASSWORD: $LOCAL_GITLAB_PASS (we PASTED it on CLIPBOARD)"
+		echo $LOCAL_GITLAB_PASS | xsel --clipboard --input
+		printf ' Remember those credentials. Login here gitlab.local for the local gitlab\n'
+		sleep 20
+	fi
 fi
 
 ./scripts/verify.sh 'called_from_launch' $1
