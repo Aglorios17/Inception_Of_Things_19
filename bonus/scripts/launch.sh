@@ -127,45 +127,44 @@ if [ "$(uname)" = "Darwin" ]; then
 	sleep 2
 	cd - 1>/dev/null
 	rm -rf tmp
-fi
-echo "\033[0;36mCreate gitlab-runner\033[0m"
-kubectl config set-context --current --namespace=gitlab
-helm repo add gitlab https://charts.gitlab.io
-if [ "$(uname)" = "Darwin" ]; then
-	helm install --namespace 'gitlab' gitlab-runner \
-				--set gitlabUrl='https://gitlab.com/',runnerRegistrationToken='GR1348941ZsiMGEXKMKDvmWx4ysQF',rbac.create='true' \
-				gitlab/gitlab-runner
-else
-	helm install --namespace 'gitlab' gitlab-runner \
-				--set gitlabUrl='http://gitlab.local/',runnerRegistrationToken='cHTxsAcKiQy5FGovyzc7',rbac.create='true' \
-				gitlab/gitlab-runner
-fi
-echo "\033[0;36mWAIT until the gitlab-runner pod is ready... (This can take up to 3minutes)\033[0m"
-SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
-kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
-echo "\033[0;36mView created GitLab Runner\033[0m"
-#helm status gitlab-runner
-kubectl describe pods gitlab-runner --namespace=gitlab
-if [ "$(uname)" = "Darwin" ]; then
-	osascript -e 'display notification "GitLab configuration is finished" with title "App Ready"'; say "App Ready"
-fi
-read -p 'Do you want to view the gitlab-runner from gitlab? (y/n): ' input
-if [ $input = 'y' ]; then
-	echo " When arrived on page expand 'Runners' and see 'Project runners', 'Assigned project runners'."
+	echo "\033[0;36mCreate gitlab-runner\033[0m"
+	kubectl config set-context --current --namespace=gitlab
+	helm repo add gitlab https://charts.gitlab.io
 	if [ "$(uname)" = "Darwin" ]; then
-		for i in {10..0}; do
-	      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
-	  		sleep 1
-		done
-		printf '\n'
-		open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+		helm install --namespace 'gitlab' gitlab-runner \
+					--set gitlabUrl='https://gitlab.com/',runnerRegistrationToken='GR1348941ZsiMGEXKMKDvmWx4ysQF',rbac.create='true' \
+					gitlab/gitlab-runner
 	else
-		printf ' If logged on gitlab go here http://gitlab.local/root/inception-of-things/-/settings/ci_cd\n'
-		sleep 20
+		helm install --namespace 'gitlab' gitlab-runner \
+					--set gitlabUrl='http://gitlab.local/',runnerRegistrationToken='cHTxsAcKiQy5FGovyzc7',rbac.create='true' \
+					gitlab/gitlab-runner
+	fi
+	echo "\033[0;36mWAIT until the gitlab-runner pod is ready... (This can take up to 3minutes)\033[0m"
+	SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
+	kubectl wait pods -n gitlab --all --for condition=Ready --timeout=600s
+	echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed since waiting for gitlab pods creation."
+	echo "\033[0;36mView created GitLab Runner\033[0m"
+	#helm status gitlab-runner
+	kubectl describe pods gitlab-runner --namespace=gitlab
+	if [ "$(uname)" = "Darwin" ]; then
+		osascript -e 'display notification "GitLab configuration is finished" with title "App Ready"'; say "App Ready"
+	fi
+	read -p 'Do you want to view the gitlab-runner from gitlab? (y/n): ' input
+	if [ $input = 'y' ]; then
+		echo " When arrived on page expand 'Runners' and see 'Project runners', 'Assigned project runners'."
+		if [ "$(uname)" = "Darwin" ]; then
+			for i in {10..0}; do
+		      printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+		  		sleep 1
+			done
+			printf '\n'
+			open 'https://gitlab.com/artainmo/inception-of-things/-/settings/ci_cd'
+		else
+			printf ' If logged on gitlab go here http://gitlab.local/root/inception-of-things/-/settings/ci_cd\n'
+			sleep 20
+		fi
 	fi
 fi
-
 
 ./scripts/verify.sh 'called_from_launch' $1
 exit 0
