@@ -40,11 +40,9 @@ kubectl create namespace dev
 kubectl create namespace gitlab
 kubectl get namespace
 
-if [ "$(uname)" = "Darwin" ]; then
-	echo "\033[0;32m======== Argo CD setup - Allow the creation of a CI/CD pipeline around kubernetes application ========\033[0m"
-else
-	echo "\033[0;32m======== Argo CD setup - Auto-sync with gitlab local repo ========\033[0m"
-fi
+
+echo "\033[0;32m======== Argo CD setup - Allow the creation of a CI/CD pipeline around kubernetes application ========\033[0m"
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
 ./scripts/launch.sh 'called_from_setup'
 exit 0

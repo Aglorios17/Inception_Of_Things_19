@@ -74,12 +74,8 @@ kubectl describe deployments will-app-deployment | grep 'Image'
 echo "> curl http://localhost:8888"
 curl http://localhost:8888
 echo "\n\033[0;36mNow we will change the git repository Argo-CD is connected to so that the image uses version $newImageVersion instead of $imageVersion\033[0m"
-if [ "$(uname)" = "Darwin" ]; then
-  git clone 'https://gitlab.com/artainmo/inception-of-things.git' tmp &>/dev/null
-else
-  git clone 'http://gitlab.local/root/inception-of-things.git' tmp &>/dev/null
-fi
-sleep 2
+git clone 'https://gitlab.com/artainmo/inception-of-things.git' tmp &>/dev/null
+sleep 5
 cd tmp
 if [ "$(uname)" = "Darwin" ]; then
   git push --dry-run &>/dev/null #verify you have the permissions to make changes to this repo
@@ -135,36 +131,33 @@ echo "\033[1;33mAfter changing deployment.yaml\033[0m"
 echo "> cat app/deployment.yaml | grep 'image'"
 cat app/deployment.yaml | grep 'image'
 git add app/deployment.yaml
-sleep 1
-git commit -m "App change image version for bonus synchronization TEST"
-sleep 1
-git push
 sleep 2
+git commit -m "App change image version for bonus synchronization TEST"
+sleep 2
+git push
+sleep 3
 cd - 1>/dev/null
 rm -rf tmp
-if [ "$(uname)" = "Darwin" ]; then
-  echo "\033[0;36mHere you can see in 'Sync Policy' that the app doesn't automatically synchronizes using Argo-CD. For this bonus we will pass through gitlab CI/CD pipeline instead.\033[0m"
-  argocd app get will --grpc-web | grep -e 'Sync Policy\|Name:'
-  read -p 'Do you want to see the CI/CD pipeline executing on gitlab? (y/n): ' input
-  if [ $input = 'y' ]; then
-    if [ "$(uname)" = "Darwin" ]; then
-      for i in {5..0}; do
-          printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
-      		sleep 1
-    	done
-    	printf '\n'
-    	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
-    else
-      printf ' Go here http://gitlab.local/root/inception-of-things/-/pipelines\n'
-      sleep 20
-    fi
+echo "\033[0;36mHere you can see in 'Sync Policy' that the app doesn't automatically synchronizes using Argo-CD. For this bonus we will pass through gitlab CI/CD pipeline instead.\033[0m"
+argocd app get will --grpc-web | grep -e 'Sync Policy\|Name:'
+read -p 'Do you want to see the CI/CD pipeline executing on gitlab? (y/n): ' input
+if [ $input = 'y' ]; then
+  if [ "$(uname)" = "Darwin" ]; then
+    for i in {5..0}; do
+        printf ' We will redirect you to https://gitlab.com/artainmo/inception-of-things/-/pipelines in: \033[0;31m%d\033[0m \r' $i #An empty space must sit before \r else prior longer string end will be displayed
+    		sleep 1
+  	done
+  	printf '\n'
+  	open 'https://gitlab.com/artainmo/inception-of-things/-/pipelines'
+  else
+    printf ' Go here https://gitlab.com/artainmo/inception-of-things/-/pipelines\n'
+    sleep 20
   fi
 fi
 echo "\033[0;36mWAIT until automated synchronization occurs (this can take up to 3minutes)\033[0m\nAvoid manual synchronization as it can lead to bugs during this demonstration."
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
 kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$newImageVersion" --timeout=600s
-if [ $? -eq 1 ]
-then
+if [ $? -eq 1 ]; then
   if [ "$(uname)" = "Darwin" ]; then
 	   osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
   fi
