@@ -9,6 +9,7 @@ re:
 
 #Remove the whole app
 clean:
+	./scripts/clean.sh
 	./scripts/fclean.sh
 
 #Create the argo-cd app (if kubernetes cluster with argo-cd controller already exists)
