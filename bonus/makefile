@@ -3,8 +3,7 @@ all:
 	./scripts/setup.sh
 
 #Reloads the whole app
-re:
-	./scripts/fclean.sh
+re: clean
 	./scripts/setup.sh
 
 #Remove the whole app
