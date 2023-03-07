@@ -156,7 +156,7 @@ if [ $input = 'y' ]; then
 fi
 echo "\033[0;36mWAIT until automated synchronization occurs (this can take up to 3minutes)\033[0m\nAvoid manual synchronization as it can lead to bugs during this demonstration."
 SECONDS=0 #Calculate time of sync (https://stackoverflow.com/questions/8903239/how-to-calculate-time-elapsed-in-bash-script)
-kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$newImageVersion" --timeout=600s
+kubectl wait deployment will-app-deployment --for=jsonpath="{.spec.template.spec.containers[*].image}"="wil42/playground:v$newImageVersion" --timeout=300s
 if [ $? -eq 1 ]; then
   if [ "$(uname)" = "Darwin" ]; then
 	   osascript -e 'display notification "Synchronization timeout" with title "App Error"'; say "App Error"
