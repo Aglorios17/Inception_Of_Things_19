@@ -50,16 +50,6 @@ sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 rm argocd-linux-amd64
 argocd version
 
-#echo "\n>> INSTALL GITLAB\n"
-#sudo apt-get install -y curl openssh-server ca-certificates tzdata perl
-#echo "During the following Postfix installation a configuration screen may appear. Select 'Internet Site' and press enter. Use your server's external DNS for 'mail name' and press enter. If additional screens appear, continue to press enter to accept the defaults."
-#sudo apt-get install -y postfix
-#echo "Make sure you have correctly set up your DNS, and change https://gitlab.example.com to the URL at which you want to access your GitLab instance. Installation will automatically configure and start GitLab at that URL."
-#curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo os=ubuntu dist=jammy bash
-#sudo GITLAB_ROOT_PASSWORD="user4242" EXTERNAL_URL="http://192.168.55.113" apt install gitlab-ee
-#echo "Username : root\n"
-#echo "Password: $(cat /home/user/../../etc/gitlab/initial_root_password)"
-#echo "sudo cat /etc/gitlab/initial_root_password | /!\ change for user4242 in gui for our script"
 echo "\n>> INSTALL HELM\n"
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
